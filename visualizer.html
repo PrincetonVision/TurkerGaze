@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Gaze Visualization</title>
+	<meta name="description" content="Visualization for PU web browser based gaze tracking"/>
+	<meta name="keywords" content="gaze, eye tracking, webcam, HCI, crowdsourcing, computer vision" />
+	<meta name="author" content="Pingmei Xu"/>
+	<meta name="owner" content="Princeton Vision Group"/>
+	<link rel="shortcut icon" href="./styles/logo/pu_logo.png"/>
+	<link rel="stylesheet" type="text/css" href="./styles/main.css">
+	<style type="text/css">
+		#files{
+			position: absolute;
+			font-size: 15px;
+		}
+		form{
+			position: absolute;
+		}
+		button{
+			position: absolute;
+			font-size: 20px;
+			font-family: Courier New,monospace;
+			color: #FFFFFF;
+			background-color:#3399FF;
+			border-style: none;
+		}
+		button:hover{
+			color: #000000;
+		}
+		#imgCanvas, #overlay, #memtestinfo{
+			position: absolute;
+		}
+	</style>
+</head>
+
+<body>
+<input type="file" id="files" name="files[]"/>
+
+<p id="msg" style="display: none;"></p>
+<p id="memtestinfo" style="display: none;"></p>
+<form id='form'>
+URL: <input type="text" name="url" id="urlText" size="100">
+<input type="checkbox" id="grayCheckbox" checked>Grayscale
+<input type="checkbox" id="arrowCheckbox" checked>Draw path
+</form>
+
+<button id='drawBttn' onclick="draw()">draw</button>
+
+<canvas id="imgCanvas" width="1200" height="1800" style="display: none;"></canvas>	
+<canvas id="overlay" width="1200" height="1800" style="display: none;"></canvas>	
+
+<script src="./js/lib/jquery-1.11.0.min.js"></script>
+
+<script>
+// global parameters
+var imgCanvas, imgCanvasCtx, overlay, overlayCtx;
+var JsonObj = null;
+var saveQueue = null;
+var memActionQueue = null;
+var GRAY = true;
+var ARROW = true;
+var gsize = 400, w = 360, h = 225, r = 2, color = '#F00';
+// memory test
+var gridsize = [210, 210], gridspacing = 10;
+var numshown = 3, numgrids;
+var gridloc; // location of each image grid
+var gridmark; // marks for each bird
+var gridsel = null; // 0: unchecked, 1: checked
+var gridimgs = null; // image path
+var gridColor = "#E6E6E6";
+var selgridColor = ["#0F0", "#F00"];
+var gridLineWidth = 2;
+var selLineWidth = 5;
+var gridselans = null;
+var memtestStartTime = null;
+var basemark, stepmark = 10, penaltymark, memtestscore;
+var gridx = 0, gridy = 0;
+var memtestscore;
+var hitimgs;
+var imggridloc = null;
+
+// center an element and display, [w,h]: size of the window
+var displayElm2Center = function(id, w, h){
+    var l = (w - $(id).width())/2;
+    var t = (h - $(id).height())/2;
+    $(id).css({left: l, top: t});
+    $(id).show();
+}
+
+function setupcanvas(){
+	imgCanvas = document.getElementById('imgCanvas');
+	imgCanvasCtx = imgCanvas.getContext('2d');
+	var w =  Math.max($(window).width(), $('#imgCanvas').width())+100;
+	var h = Math.max($(window).height(), $('#imgCanvas').height())+280
+	displayElm2Center('#imgCanvas', w, h);
+	$('#imgCanvas').show();
+
+	overlay = document.getElementById('overlay');
+	overlayCtx = overlay.getContext('2d');
+	displayElm2Center('#overlay', w, h);
+	$('#overlay').show();
+
+	displayElm2Center('#files', $('#files').width()+40, 40);
+	displayElm2Center('#form', $('#form').width()+40, 100);
+	displayElm2Center('#drawBttn', $('#drawBttn').width()+40, 200);
+}
+
+$( "#grayCheckbox" ).on( "click", function() {
+	GRAY = document.getElementById("grayCheckbox").checked;
+});
+
+$( "#arrowCheckbox" ).on( "click", function() {
+	ARROW = document.getElementById("arrowCheckbox").checked;
+});
+
+function handleFileSelect(evt) {
+    var files = evt.target.files; // FileList object
+    f = files[0];
+    var reader = new FileReader();
+    // Closure to capture the file information.
+    reader.onload = (function (theFile) {
+        return function (e) {
+            // Render thumbnail.
+            JsonObj = e.target.result
+             var parsedJSON = JSON.parse(JsonObj);
+            loadData(parsedJSON); // load local json file
+        };
+    })(f);
+    reader.readAsText(f, 'UTF-8');
+}
+
+function displayDigit(x){
+	return x.toFixed(3);
+}
+
+function loadData(data){
+	saveQueue = data;
+	visualizeResults();
+}
+
+function draw(){
+	if ($('#urlText').val() != ""){
+		$.getJSON($('#urlText').val(), function(data) {
+			saveQueue = data;
+			visualizeResults();	
+		})
+		.fail(function() {
+			alert('Wrong URL.');
+		});
+
+	}else{
+		visualizeResults();	
+	}
+}
+
+function visualizeResults(){
+	if(saveQueue == null) return;
+
+	overlayCtx.clearRect(0, 0, $('#overlay').width(), $('#overlay').height()); 
+	imgCanvasCtx.clearRect(0, 0, $('#imgCanvas').width(), $('#imgCanvas').width()); 
+
+	if(saveQueue[0].format =='matlab'){
+		screenw = saveQueue[0].screenw;
+		screenh = saveQueue[0].screenh
+		imgpaths = saveQueue[0].imgpaths;
+		gazeloc = saveQueue[0].gazeloc;
+		numimg = imgpaths.length;
+		// meta information
+		var str = '';
+		str += 'Screen size: ' + screenw + '*' + screenh + '; ';
+		$('#msg').html(str);
+		displayElm2Center('#msg', $(window).width(), 200);
+		$('#msg').show();
+	}else{
+		expsequence = saveQueue[1];
+		resultQueue = saveQueue[2];
+		screenw = saveQueue[0].screenw;
+		screenh = saveQueue[0].screenh
+		
+		// meta information
+		var str = '';
+		if(saveQueue[3].looerr_test != undefined){
+			var looerr = eval(saveQueue[3].looerr_test);
+			str += 'LOO error: ' + looerr.map(displayDigit) + ';';
+		}
+		str += ' Train error:' + saveQueue[3].trainerr.toFixed(3) + '</br>';	
+		str += 'Screen size: ' + screenw + '*' + screenh + '; ';
+		str += 'Patch size: ' + (saveQueue[0].patchsize[0]+saveQueue[0].margin[0]) + '*' + (saveQueue[0].patchsize[1]+saveQueue[0].margin[1])  + '; ';
+		$('#msg').html(str);
+		displayElm2Center('#msg', $(window).width(), 200);
+		$('#msg').show();
+		
+		// images and eye tracking resutls
+		var numimg = 0;
+		var imgpaths = [];
+		var imgidx = Array.apply(null, new Array(expsequence.length)).map(Number.prototype.valueOf,-1);
+
+		for (var i = 0; i < expsequence.length; i++){
+			if (expsequence[i].type == 'image'){
+				imgidx[i] = imgpaths.length;
+				imgpaths.push(expsequence[i].path);
+			}
+		}
+		numimg = imgpaths.length;
+
+		var gazeloc = new Array(numimg);
+		for (var i = 0; i < numimg; i++){
+			gazeloc[i] = [];
+		}
+		for (var i = 0; i < resultQueue.length; i++){
+			entry = resultQueue[i];
+			if(imgidx[resultQueue[i].index] != -1){
+				gazeloc[imgidx[resultQueue[i].index]].push(resultQueue[i].value);
+			}
+		}
+		// memory test
+		memActionQueue = saveQueue[4];
+	}
+
+	// match original aspect ratio
+	ratio = screenw/screenh;
+	if(w/h > ratio){
+		w = h*ratio;
+	}else{
+		h = w/ratio;
+	}
+	for (var i = 0; i < numimg; i++){
+		x = (i-Math.floor(i/3)*3) * gsize;
+		y = Math.floor(i/3) * gsize;
+		showImgGaze(imgCanvasCtx, overlayCtx, x, y, w, h, imgpaths[i], gazeloc[i], r, color);
+	}
+	if(memActionQueue != null){
+		gridy = 50 + Math.ceil(numimg/3) * gsize;
+		visualizeMemoryTest(imgCanvasCtx, overlayCtx);
+	}
+}
+
+// display image and gaze data
+function showImgGaze(ctx, ctxdraw, x, y, w, h, imgpath, gaze, r, color){
+	var image = new Image();	
+    image.onload = function() {
+        var s = Math.min(w/image.width, h/image.height);
+        var rsw = image.width*s, rsh = image.height*s;
+        ctx.drawImage(image, x+(w-rsw)/2, y+(h-rsh)/2, rsw, rsh);
+
+        if(GRAY){
+        	var imgPixels = ctx.getImageData(x+(w-rsw)/2, y+(h-rsh)/2, rsw, rsh);
+			for(var m = 0; m < imgPixels.height; m++){
+			     for(var n = 0; n < imgPixels.width; n++){
+			          var i = (m * 4) * imgPixels.width + n * 4;
+			          var avg = (imgPixels.data[i] + imgPixels.data[i + 1] + imgPixels.data[i + 2]) / 3;
+			          imgPixels.data[i] = avg;
+			          imgPixels.data[i + 1] = avg;
+			          imgPixels.data[i + 2] = avg;
+			     }
+			}
+			ctx.putImageData(imgPixels, x+(w-rsw)/2, y+(h-rsh)/2);
+        }
+        if(ARROW){
+        	for(var i = 0; i < gaze.length-1; i++){
+	        	if(gaze[i][0] > 0 && gaze[i][0] < 1 && gaze[i][1] > 0 && gaze[i][1] < 1 &&
+	        		gaze[i+1][0] > 0 && gaze[i+1][0] < 1 && gaze[i+1][1] > 0 && gaze[i+1][1] < 1){
+		        	ctxdraw.beginPath();
+		        	ctxdraw.moveTo(x+w*gaze[i][0], y+h*gaze[i][1]);
+					ctxdraw.lineTo(x+w*gaze[i+1][0], y+h*gaze[i+1][1]);
+					ctxdraw.strokeStyle = "#0F0";
+					ctxdraw.lineWidth = 1.5;
+					ctxdraw.closePath();
+					ctxdraw.stroke();
+	        	}
+	        }	
+        }
+        var cnt = 0;
+		for(var i = 0; i < gaze.length; i++){
+        	if(gaze[i][0] > 0 && gaze[i][0] < 1 && gaze[i][1] > 0 && gaze[i][1] < 1){
+        		drawCircle(ctxdraw, x+w*gaze[i][0], y+h*gaze[i][1], r, color, true);
+        		cnt++;
+        	}
+        }
+        if(gaze.length > 0){
+        	drawCircle(ctxdraw, x+w*gaze[0][0], y+h*gaze[0][1], r*2, '#0F0', true, '#00F');	
+        	ctxdraw.fillStyle = "#000";
+        	ctxdraw.fillText('#sample: ' + cnt,x,y+h+10);
+        }
+    }
+    image.src = imgpath;
+}
+
+// draw a circle
+function drawCircle(ctx, x, y, r, linecolor, fill, color){
+	ctx.beginPath();
+	ctx.arc(x, y, r, 0, 2 * Math.PI, true);
+	ctx.closePath();
+	ctx.strokeStyle = linecolor;
+	ctx.stroke();
+	if(fill){
+		if(color == undefined) color = linecolor;
+		ctx.fillStyle = color;
+		ctx.fill();	
+	}
+}
+
+function visualizeMemoryTest(ctx, overlayctx){
+	var item = memActionQueue[0];
+	imgpaths = item.imgpaths;
+	numgrids = item.numgrids;
+	numshown = item.numshown;
+	memshowidx = item.memshowidx;
+	gridimgs = item.gridimgs;
+	gridselans = item.gridselans;
+	basemark = item.basemark;
+	stepmark = item.stepmark;
+	penaltymark = item.penaltymark;
+	var item = memActionQueue[1];
+	memtestStartTime = item.time;
+	var item = memActionQueue[memActionQueue.length-1];
+	gridsel = item.gridsel;
+	memtestscore = item.memtestscore;
+	var str = '';
+	str += 'Memory test score: ' + memtestscore;
+	str += '; Number of clicks: ' + (memActionQueue.length-4);
+	$('#memtestinfo').html(str);
+	displayElm2Center('#memtestinfo', $(window).width(), (gridy+50)*2);
+
+	gridloc = getgridloc(0, gridy-50, [10,10], numgrids, 5);
+	drawGrids(ctx, gridx, gridy, gridloc, [5,5], gridselans, gridselans, gridColor, selgridColor, 5, 5);
+	imggridloc = getgridloc(gridx, gridy, gridsize, numgrids, gridspacing);
+	drawGrids(overlayctx, gridx, gridy, imggridloc, gridsize, gridsel, gridselans, gridColor, selgridColor, gridLineWidth, selLineWidth);
+	displayMemImages();
+}
+
+// draw a rounded corner rectangle
+function drawRoundCornerRect(ctx, x, y, w, h, color, width){
+	ctx.lineJoin = 'round';
+	ctx.lineWidth = width;
+	ctx.strokeStyle = color;
+	rcorner = width;
+	ctx.strokeRect(x, y, w+(rcorner/2), h+(rcorner/2));
+	ctx.stroke();
+	ctx.lineJoin = 'miter';
+}
+
+function displayMemImages(){
+	// preloading hit images and memory images
+	hitimgs = new Array(imgpaths.length);
+	preloadHitImgs(0);
+}
+
+function preloadHitImgs(idx){
+	if(idx >= imgpaths.length){
+		drawGridsImg(imgCanvasCtx, imggridloc, gridsize, null);
+		return;
+	}
+	hitimgs[idx] = new Image();
+	hitimgs[idx].onload = function(){
+		preloadHitImgs(idx+1);
+	};
+	hitimgs[idx].src = imgpaths[idx];
+}
+
+// image gallery on a fixed grid
+function drawGridsImg(ctx, loc, size, imggrid){
+	var numy = loc.length;
+	var numx = loc[0].length;
+	var w = size[1], h = size[0];
+	for(var i = 0; i < numy; i++){
+		for(var j = 0; j < numx; j++){
+			var image = hitimgs[gridimgs[i][j]];
+			var s = Math.min(w/image.width, h/image.height);
+		    var rsw = image.width*s, rsh = image.height*s;
+		    ctx.drawImage(image, loc[i][j][0]+(w-rsw)/2, loc[i][j][1]+(h-rsh)/2, rsw, rsh);
+		}
+	}
+}
+
+// get coordinates of grids
+function getgridloc(x, y, size, grids, spacing){
+	var numy = grids[0];
+	var numx = grids[1];
+	var w = size[1], h = size[0];
+	var loc = new Array(numy); // one row
+	for(var i = 0; i < numy; i++){
+		loc[i] = new Array(numx);
+		for(var j = 0; j < numx; j++){
+			loc[i][j] = new Array(2);
+			loc[i][j][0] = x + (j+1)*spacing + j*w;
+			loc[i][j][1] = y + (i+1)*spacing + i*h;
+		}
+	}
+	return loc;
+}
+
+// draw grids
+function drawGrids(ctx, x, y, loc, size, sel, selans, color, selcolor, width, selwidth){
+	var numy = loc.length;
+	var numx = loc[0].length;
+	var w = size[1], h = size[0];
+	// draw grids
+	ctx.beginPath();
+	for(var i = 0; i < numy; i++){
+		for(var j = 0; j < numx; j++){
+			if(sel[i][j] == 0){
+				drawRoundCornerRect(ctx, loc[i][j][0], loc[i][j][1], w, h, color, width);			
+			}
+			else if(selans[i][j] == 1){
+				drawRoundCornerRect(ctx, loc[i][j][0], loc[i][j][1], w, h, selcolor[0], selwidth);
+			}
+			else{
+				drawRoundCornerRect(ctx, loc[i][j][0], loc[i][j][1], w, h, selcolor[1], selwidth);
+			}
+		}
+	}
+}
+</script>
+
+<script>
+	setupcanvas();
+	document.getElementById('files').addEventListener('change', handleFileSelect, false);
+</script>
+
+</body>
+</html>

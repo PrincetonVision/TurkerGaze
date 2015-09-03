@@ -1,0 +1,361 @@
+body {
+	font-family:'Lucida Grande', Helvetica, Arial, Verdana, sans-serif;
+	color: #000000;
+	background-color: #FFFFFF;
+	margin: 0px auto;
+	cursor: auto;
+	min-width:800px; 
+	min-height:700px; 
+	cursor: auto;	
+}
+/*button*/
+button{
+	position: absolute;
+	height: 50px;
+	font-size: 20px;
+	font-weight: bold;
+	font-family:'Lucida Grande', Helvetica, Arial, Verdana, sans-serif;
+	color: #424242;
+	border-style: none;
+	border-radius: 10px;
+	cursor:pointer;
+	outline: 0;
+}
+button:hover{
+	color: #e0e0e0;
+	background-color:#3399FF;
+}
+#copylinkButton, #fullscreenButton{
+	background-color:#0091EA;
+}
+#reTrack{
+	background-color:#FF4455;
+}
+#reTrack:hover{
+	background-color:#FF4455;
+}
+#start, #closeWinButton{
+	background-color:#A4A4A4;
+}
+#start:hover{
+	color: #e0e0e0;
+}
+#replayButton, #downloadButton{
+	background-color:#3399FF;
+}
+#memtestform{
+	position: absolute;
+	font-size: 25px;
+	color: #FFFFFF;
+}
+#memtestButton, #startmemtestButton, #finishmemtestButton{
+	background-color:#3399FF;
+}
+
+/*instruction*/
+p{
+	position: absolute;
+	text-align: center;
+	color: #000000;
+	max-width : 100%;
+}
+#content{
+	cursor: auto;
+	width: 960px;
+	margin: auto;
+	margin-top: 50px;
+	padding: 10px;
+	border-style: solid;
+	-webkit-border-radius: 10px;
+}
+#hitsummary{
+	-webkit-border-radius: 10px;
+	position: relative;
+	width: 98%;
+	background: #ffab00;
+	color: #000;
+	font-size: 20px;
+	padding: 10px;
+	left: 1%;
+	margin-left: -10px;
+	text-align: center;
+	margin-top: 0px;
+	margin-bottom: 0;
+	color: #212121;
+}
+#instrimgdiv{
+	position: relative;
+	width: 100%;
+	/*height: 200px;*/
+	padding: 10px;
+	margin-left: -10px;
+	margin-top: 0;
+	margin-bottom: 0;
+}
+#gamelogo{
+	position: relative;
+	width: 60%;
+	padding: 10px;
+	margin-left: auto;
+	margin-right: auto;
+	margin-top: 0;
+	margin-bottom: 0;
+}
+
+#fullscreenButton{
+	position: relative;
+	width: 220px;
+	left: 50%;
+	margin-left: -100px;
+	margin-bottom: 20px; 
+	margin-top: 10px;
+}
+#warningP{
+	position: relative;
+	width: 88%;
+	margin-left: 6%;
+	margin-top: 0;
+	margin-bottom: 0;
+	font-size: 24px;
+	height: 50;
+}
+
+#instrmsgP{
+	font-size: 20px;
+	max-width : 65%;
+	-webkit-border-radius: 10px;
+}
+
+#statusmsgP{
+	font-size: 20px;
+	position: absolute;
+	margin-top: 0;
+}
+
+#vismsgP{
+	font-size: 16px;	
+}
+
+/*canvas*/
+#imgCanvas, #overlay, #msgoverlay, #fsoverlay, #memmark, #memscore, #memtestButton, #startmemtestButton, #finishmemtestButton{
+	position: absolute;
+}
+#msgoverlay{
+	opacity:0.8;
+}
+
+/* tips icons */
+#tips0, #tips1, #tips2, #tips3, #tips4{
+	position: absolute;
+	color: #FFF;	
+}
+
+/* memory test */
+#memmark{
+	opacity:0.85;
+	font-family: zorque;
+	font-size: 100px;
+	color: #3399FF;
+}
+
+/*progress bar*/
+#slider{
+	position: absolute;
+	top: 45%;
+	left: 50%;
+ 	margin-left:-125px;
+	width: 250px;
+	height: 20px;
+	border: 2px solid #3399FF;
+	background-color: #fff;
+	border-radius: 10px;
+}
+#sliderbar{
+	border-radius: 5px;
+	max-width: 246px;
+	position: absolute;
+	left: 2px;
+	top: 2px;
+	height: 16px;
+	font-size: 12px;
+	background: #3399FF;
+}
+#progress {
+    position: absolute;
+    left: 260px;
+    top: 2px; 
+	color: #3399FF;
+	font-size: 14px;
+	font-weight: bold;
+	font-family:'Lucida Grande', Helvetica, Arial, Verdana, sans-serif;
+}
+
+/*full-screen*/
+#fullscreen{
+	cursor: auto;
+}
+#fullscreen:-webkit-full-screen
+{
+	float: none;
+	width: 100%;
+	height: 100%;
+	padding: 0;
+	margin: 0;
+	border: 0 none;
+	background-color: #f00;
+}
+#fullscreen:full-screen
+{
+	float: none;
+	width: 100%;
+	height: 100%;
+	padding: 0;
+	margin: 0;
+	border: 0 none;
+}
+
+#fsoverlay:-webkit-full-screen
+{
+	float: none;
+	width: 100%;
+	height: 100%;
+	padding: 0;
+	margin: 0;
+	border: 0 none;
+	background-color: #f00;
+}
+#fsoverlay:full-screen
+{
+	float: none;
+	width: 100%;
+	height: 100%;
+	padding: 0;
+	margin: 0;
+	border: 0 none;
+}
+
+@-webkit-keyframes FadeInOut4 {
+0% {opacity:1;}
+24% {opacity:1;}
+25% {opacity:0;}
+97% {opacity:0;}
+100% {opacity:1;}
+}
+@keyframes FadeInOut4 {
+0% {opacity:1;}
+24% {opacity:1;}
+25% {opacity:0;}
+97% {opacity:0;}
+100% {opacity:1;}
+}
+
+@-webkit-keyframes FadeInOut3 {
+	0% {opacity:1;}
+	29% {opacity:1;}
+	32% {opacity:0.8;}
+	34% {opacity:0;}
+	95% {opacity:0;}
+	98% {opacity:0.8;}
+	100% {opacity:1;}
+}
+@keyframes FadeInOut3 {
+	0% {opacity:1;}
+	29% {opacity:1;}
+	32% {opacity:0.8;}
+	34% {opacity:0;}
+	95% {opacity:0;}
+	98% {opacity:0.8;}
+	100% {opacity:1;}
+}
+
+@-webkit-keyframes FadeInOut2 {
+	0% {opacity:1;}
+	44% {opacity:1;}
+	48% {opacity:0.8;}
+	50% {opacity:0;}
+	94% {opacity:0;}
+	96% {opacity:0.8;}
+	100% {opacity:1;}
+}
+@keyframes FadeInOut2 {
+	0% {opacity:1;}
+	44% {opacity:1;}
+	48% {opacity:0.8;}
+	50% {opacity:0;}
+	94% {opacity:0;}
+	96% {opacity:0.8;}
+	100% {opacity:1;}
+}
+
+#tipsdiv, #tips0, #tips1, #tips2, #tips3, #tips4{
+	position:absolute;	
+}
+
+#tipssec0,#tipssec1,#tipssec2,#tipssec3,#tipssec4{
+	position:absolute;
+	margin:0 auto;
+}
+
+#tipssec0 img, #tipssec1 img,#tipssec2 img,#tipssec3 img,#tipssec4 img {
+	position:absolute;
+}
+
+#tipssec2 img {
+  -webkit-animation-name: FadeInOut2;
+  -webkit-animation-timing-function: ease-in-out;
+  -webkit-animation-iteration-count: infinite;
+  -webkit-animation-duration: 4s;
+
+  animation-name: FadeInOut2;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+  animation-duration: 4s;
+}
+#tipssec1 img, #tipssec3 img {
+  -webkit-animation-name: FadeInOut3;
+  -webkit-animation-timing-function: ease-in-out;
+  -webkit-animation-iteration-count: infinite;
+  -webkit-animation-duration: 6s;
+
+  animation-name: FadeInOut3;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+  animation-duration: 6s;
+}
+
+#tipssec4 img {
+  -webkit-animation-name: FadeInOut4;
+  -webkit-animation-timing-function: ease-in-out;
+  -webkit-animation-iteration-count: infinite;
+  -webkit-animation-duration: 8s;
+
+  animation-name: FadeInOut4;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+  animation-duration: 8s;
+}
+
+/*4th img*/
+#tipssec4 img:nth-of-type(1){
+  -webkit-animation-delay: 6s;
+  animation-delay: 6s;
+}
+/*3rd img*/
+#tipssec1 img:nth-of-type(1), #tipssec3 img:nth-of-type(1), #tipssec4 img:nth-of-type(2){
+  -webkit-animation-delay: 4s;
+  animation-delay: 4s;
+}
+/*2nd img*/
+ #tipssec1 img:nth-of-type(2), #tipssec2 img:nth-of-type(1), #tipssec3 img:nth-of-type(2), #tipssec4 img:nth-of-type(3) {
+  -webkit-animation-delay: 2s;
+  animation-delay: 2s;
+}
+/*1st img*/
+#tipssec1 img:nth-of-type(3), #tipssec2 img:nth-of-type(2), #tipssec3 img:nth-of-type(3), #tipssec4 img:nth-of-type(4) {
+  -webkit-animation-delay: 0;
+  animation-delay: 0;
+}
+/*single img*/
+#tipssec0 img{
+	opacity:1;
+}
