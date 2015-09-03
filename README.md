@@ -35,6 +35,6 @@ If you find TurkerGaze useful in your research, please consider citing:
 
 
 ### License
-XXXX
+TurkerGaze is released under the MIT License (refer to the LICENSE file for details).
 
 
