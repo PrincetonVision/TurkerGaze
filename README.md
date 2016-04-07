@@ -1,8 +1,15 @@
 # TurkerGaze
 TurkerGaze: Crowdsourcing Saliency with Webcam based Eye Tracking
 
-Created by Pingmei Xu, Jianxiong Xiao at Princeton Vision Group.
+### Instructions
+```bash
+> ./scripts/install.sh
+> npm install
+> npm start
 
+```
+
+Created by Pingmei Xu, Jianxiong Xiao at Princeton Vision Group.
 
 ### Introduction
 TurkerGaze is a webcam-based eye tracking game for collecting large-scale eye tracking data via crowdourcing. It is implemented in javascript and the details were described in an [arXiv tech report](http://arxiv.org/abs/1504.06755).

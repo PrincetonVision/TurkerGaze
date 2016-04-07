@@ -8,6 +8,7 @@
 	<meta name="owner" content="Princeton Vision Group"/>
 	<link rel="shortcut icon" href="./styles/logo/pu_logo.png"/>
 	<link rel="stylesheet" type="text/css" href="./styles/main.css">
+	<link rel="stylesheet" href="https://cdn.rawgit.com/twbs/bootstrap/v4-dev/dist/css/bootstrap.css">
 </head>
 
 <body>
@@ -36,6 +37,8 @@
 		</td>
 	</tr>
 </table>
+
+<div class="container"></div>
 
 <!-- canvas -->
 <!-- experiment interface -->
@@ -77,6 +80,8 @@
 <button id="finishmemtestButton" onclick="finishMemTest();" style="display: none;">GREAT, SUBMIT!</button>
 <!-- icons for tips -->
 <div id="tipsdiv" style="display: none;"></div>
+
+<script src="/bundle.js"></script>
 
 <!-- js library -->
 <script src="./js/lib/jquery-1.11.0.min.js"></script>
@@ -158,39 +163,46 @@ function hasGetUserMedia() {
 }
 navigator.getUserMedia = navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia;
 URL = window.URL || window.webkitURL;
-var streamVideo = document.createElement('video'); // video stream
-
+Webcam.set({
+  width: 640,
+  height: 360,
+  image_format: 'jpeg',
+  jpeg_quality: 90
+});
+Webcam.attach( '#imgCanvas' );
+// var streamVideo = document.createElement('video'); // video stream
+var streamVideo = document.getElementById('imgCanvas').children[1];
 function getMedia(){
 	// instruction: get camera access
 	$("#warningP").html(instrMsg.camaccess);
 	$('#warningP').show();
-	if (hasGetUserMedia()) {
-		navigator.getUserMedia(getUserMediaConstraints, function(stream) {
+	// if (hasGetUserMedia()) {
+	// 	navigator.getUserMedia(getUserMediaConstraints, function(stream) {
 			// video stream
 		    streamVideo.muted = true;
 		    streamVideo.volume = 0;
 		    streamVideo.autoplay = true;
 		    streamVideo.width = hdW;
 		    streamVideo.height = hdH;
-		    streamVideo.src = URL.createObjectURL(stream);
+		    streamVideo.src = URL.createObjectURL(Webcam.stream);
 		    streamVideo.play();
-	        localStream = stream;
-	        $('#fullscreenButton').prop('disabled', false);
-	        $('#fullscreenButton').css({"background-color":"#03a9f4", 'color':'#424242'});
-	        $('#fullscreenButton').hover(
-	        	function(){$(this).css({'color':'#eeeeee','background-color':'#29b6f6'});},
-	        	function(){$(this).css({'color':'#424242','background-color':'#03a9f4'});}
-			);
+		    localStream = Webcam.stream;
+		    $('#fullscreenButton').prop('disabled', false);
+		    $('#fullscreenButton').css({"background-color":"#03a9f4", 'color':'#424242'});
+		    $('#fullscreenButton').hover(
+		    	function(){$(this).css({'color':'#eeeeee','background-color':'#29b6f6'});},
+		    	function(){$(this).css({'color':'#424242','background-color':'#03a9f4'});}
+		    	);
 			// turn on speaker
 		    $("#warningP").html('Please turn on the sound for better experience.');
 
-	    }, function() {
-	        $("#warningP").html(instrMsg.refreshcamaccess);
-	    });
-	} else {
-		alert('getUserMedia() is not supported in your browser');
-		$("#warningP").html(instrMsg.cameranotsupport);
-	}// getUserMedia
+	//     }, function() {
+	//         $("#warningP").html(instrMsg.refreshcamaccess);
+	//     });
+	// } else {
+	// 	alert('getUserMedia() is not supported in your browser');
+	// 	$("#warningP").html(instrMsg.cameranotsupport);
+	// }// getUserMedia
 }
 
 // onload document
